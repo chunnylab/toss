@@ -25,6 +25,27 @@ export TOSS_SRC=~/Downloads   # optional: where bare `toss` looks
 export TOSS_DEST=Downloads/   # optional: destination dir on the target
 ```
 
+### Several targets, including Windows
+
+List more than one alias in `TOSS_TO` and toss asks where to send each
+time:
+
+```zsh
+export TOSS_TO="mac windows-desktop"
+export TOSS_SCP=windows-desktop   # targets without rsync
+```
+
+```
+$ toss photo.jpg
+1) mac  2) windows-desktop
+toss to? 2
+```
+
+Windows' built-in OpenSSH server has no rsync, so targets named in
+`TOSS_SCP` get `scp` instead. Files still land in `Downloads`
+(`C:\Users\<you>\Downloads`), but scp re-sends the whole file every time
+and cannot resume an interrupted transfer.
+
 Open a new terminal and try it:
 
 ```zsh

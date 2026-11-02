@@ -4,7 +4,9 @@
 # (recommended, in ~/.ssh/config) with key authentication.
 #
 # Configuration (in your ~/.zshrc):
-#   export TOSS_TO=myserver       # target SSH alias (required)
+#   export TOSS_TO=myserver       # target SSH alias (required); list several,
+#                                 # e.g. "mac windows-desktop", to pick per send
+#   export TOSS_SCP=windows-desktop  # targets without rsync (Windows): use scp
 #   export TOSS_SRC=~/Downloads   # where bare `toss` grabs the newest file
 #   export TOSS_DEST=Downloads/   # destination dir on the target host
 #
@@ -26,5 +28,20 @@ toss() {
   else
     files=("$@")
   fi
-  rsync -avP -- "${files[@]}" "${TOSS_TO}:${TOSS_DEST:-Downloads/}"
+  local -a targets=(${=TOSS_TO})
+  local to
+  if (( $#targets > 1 )); then
+    local PROMPT3="toss to? "
+    select to in $targets; do [[ -n $to ]] && break; done
+    [[ -n $to ]] || return 1
+  else
+    to=$targets[1]
+  fi
+  local dest="${to}:${TOSS_DEST:-Downloads/}"
+  # Windows OpenSSH ships no rsync; scp still lands in ~\Downloads.
+  if (( ${${=TOSS_SCP:-}[(Ie)$to]} )); then
+    scp -- "${files[@]}" "$dest"
+  else
+    rsync -avP -- "${files[@]}" "$dest"
+  fi
 }
